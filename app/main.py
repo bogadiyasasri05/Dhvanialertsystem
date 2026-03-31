@@ -1,66 +1,30 @@
-from fastapi import FastAPI, UploadFile, File
-import shutil
+from flask import Flask, request, jsonify
 import os
-import time
+from app.predict import predict_sound
 
-app = FastAPI()
+app = Flask(__name__)
 
-UPLOAD_DIR = "temp"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_FOLDER = "temp"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ✅ SAFE IMPORT (prevents app crash)
-try:
-    from app.predict import predict_full_audio
-    MODEL_LOADED = True
-    print("✅ Model + predict loaded successfully")
-except Exception as e:
-    MODEL_LOADED = False
-    ERROR_MSG = str(e)
-    print("❌ Error loading predict module:", ERROR_MSG)
-
-
-@app.get("/")
+@app.route("/")
 def home():
-    return {
-        "message": "Dhvani AI running 🚀",
-        "model_loaded": MODEL_LOADED
-    }
+    return {"message": "Dhvani AI Backend Running 🚀"}
 
+@app.route("/predict", methods=["POST"])
+def predict():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
 
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-    
-    # ❌ If model failed, return error instead of crashing
-    if not MODEL_LOADED:
-        return {
-            "error": "Model not loaded",
-            "details": ERROR_MSG
-        }
-
-    start_time = time.time()
-
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file = request.files["file"]
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
 
     try:
-        # ✅ Save uploaded file
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        # ✅ Run prediction
-        result = predict_full_audio(file_path)
-
-        end_time = time.time()
-        result["processing_time_sec"] = round(end_time - start_time, 2)
-
-        return result
-
+        result = predict_sound(file_path)
+        return jsonify(result)
     except Exception as e:
-        return {
-            "error": "Prediction failed",
-            "details": str(e)
-        }
+        return jsonify({"error": str(e)}), 500
 
-    finally:
-        # ✅ Clean up file after prediction
-        if os.path.exists(file_path):
-            os.remove(file_path)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
