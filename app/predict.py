@@ -1,27 +1,29 @@
 import numpy as np
-from app.audio_utils import preprocess_audio
 from app.model_loader import feature_model, prototypes, class_names, OSR_THRESHOLD
 
-def predict_sound(file_path):
-    img = preprocess_audio(file_path)
+def predict_sound(image):
+    # Step 1: Extract features
+    features = feature_model.predict(image)
+    features = features / np.linalg.norm(features, axis=1, keepdims=True)
 
-    features = feature_model.predict(img, verbose=0)[0]
+    # Step 2: Normalize prototypes
+    proto_norm = prototypes / np.linalg.norm(prototypes, axis=1, keepdims=True)
 
-    distances = [
-        np.linalg.norm(features - prototypes[i])
-        for i in range(len(class_names))
-    ]
+    # Step 3: Cosine similarity
+    similarity = np.dot(features, proto_norm.T)
 
-    closest_idx = int(np.argmin(distances))
-    min_dist = float(distances[closest_idx])
+    # Step 4: Get best match
+    best_idx = np.argmax(similarity)
+    best_score = similarity[0][best_idx]
 
-    if min_dist > OSR_THRESHOLD:
+    # Step 5: Open Set Recognition
+    if best_score < OSR_THRESHOLD:
         return {
-            "label": "unknown",
-            "confidence": min_dist
+            "class": "unknown",
+            "confidence": float(best_score)
         }
 
     return {
-        "label": class_names[closest_idx],
-        "confidence": min_dist
+        "class": class_names[best_idx],   # ✅ THIS gives class name
+        "confidence": float(best_score)
     }
