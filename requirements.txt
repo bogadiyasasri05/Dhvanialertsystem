@@ -1,5 +1,7 @@
-tensorflow==2.12.0
-numpy
-librosa
 fastapi
 uvicorn
+tensorflow
+numpy
+librosa
+soundfile
+python-multipart
