@@ -1,7 +1,6 @@
-fastapi
-uvicorn
-tensorflow-cpu==2.13.0
+flask
+tensorflow
 numpy
 librosa
-opencv-python-headless
-python-multipart
+opencv-python
+gunicorn
