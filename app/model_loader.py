@@ -2,8 +2,8 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.models import Model
 
-MODEL_PATH = "app/models/dhvani_model.keras"
-PROTO_PATH = "app/models/class_prototypes.npy"
+MODEL_PATH = "models/dhvani_model.keras"
+PROTO_PATH = "models/class_prototypes.npy"
 
 # Load model
 base_model = tf.keras.models.load_model(MODEL_PATH, compile=False)
