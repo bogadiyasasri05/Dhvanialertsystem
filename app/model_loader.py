@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.models import Model
 
-MODEL_PATH = "models/dhvani_model.h5"
+MODEL_PATH = "models/dhvani_model_clean.h5"
 PROTO_PATH = "models/class_prototypes.npy"
 
 # Load model
