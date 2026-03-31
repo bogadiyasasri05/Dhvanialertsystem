@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-MODEL_PATH = "models/dhvani_model.h5"
+MODEL_PATH = "models/dhvani_model_clean.h5"
 PROTO_PATH = "models/class_prototypes.npy"
 
 # Build model architecture
