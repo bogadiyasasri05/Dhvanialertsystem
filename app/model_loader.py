@@ -1,28 +1,16 @@
 import tensorflow as tf
 import numpy as np
 
-MODEL_PATH = "models/dhvani_model_clean.h5"
-PROTO_PATH = "models/class_prototypes.npy"
+MODEL_PATH = "app/models/dhvani_model_clean.h5"
+PROTO_PATH = "app/models/class_prototypes.npy"
 
-# Build model architecture
-base = tf.keras.applications.MobileNetV2(
-    input_shape=(224, 224, 3),
-    include_top=False,
-    weights=None
-)
+# ✅ Load FULL trained model (NO manual architecture)
+feature_model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-x = tf.keras.layers.GlobalAveragePooling2D()(base.output)
-x = tf.keras.layers.Dense(128, activation="relu")(x)
-
-feature_model = tf.keras.Model(inputs=base.input, outputs=x)
-
-# Load weights
-feature_model.load_weights(MODEL_PATH)
-
-# Load prototypes
+# ✅ Load prototypes
 prototypes = np.load(PROTO_PATH, allow_pickle=True)
 
-# Extract class names
+# ✅ Extract class names
 if isinstance(prototypes, dict):
     class_names = list(prototypes.keys())
     prototypes = np.array(list(prototypes.values()))
