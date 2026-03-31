@@ -1,6 +1,7 @@
-flask
+fastapi
+uvicorn
 tensorflow
 numpy
 librosa
 opencv-python
-gunicorn
+python-multipart
