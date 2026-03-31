@@ -1,16 +1,27 @@
-import librosa
 import numpy as np
-import cv2
+import librosa
+import soundfile as sf
+import io
 
-def preprocess_audio(file_path):
-    y, sr = librosa.load(file_path, duration=4.0)
+def audio_to_spectrogram(file_bytes):
+    # Read audio
+    data, sr = sf.read(io.BytesIO(file_bytes))
 
-    mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)
-    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+    # Convert stereo → mono
+    if len(data.shape) > 1:
+        data = np.mean(data, axis=1)
 
-    mel_norm = cv2.normalize(mel_spec_db, None, 0, 255, cv2.NORM_MINMAX).astype('uint8')
-    mel_rgb = cv2.applyColorMap(mel_norm, cv2.COLORMAP_VIRIDIS)
-    img = cv2.resize(mel_rgb, (224, 224))
+    # Generate mel spectrogram
+    spectrogram = librosa.feature.melspectrogram(y=data, sr=sr)
+    spectrogram = librosa.power_to_db(spectrogram)
 
-    img = np.expand_dims(img, axis=0)
-    return img
+    # Resize to 224x224
+    spectrogram = np.resize(spectrogram, (224, 224))
+
+    # Convert to 3 channels
+    spectrogram = np.stack([spectrogram]*3, axis=-1)
+
+    # Normalize
+    spectrogram = spectrogram / (np.max(spectrogram) + 1e-6)
+
+    return np.expand_dims(spectrogram, axis=0)
