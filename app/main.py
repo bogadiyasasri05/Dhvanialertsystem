@@ -1,30 +1,39 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+import shutil
 import os
+
 from app.predict import predict_sound
 
-app = Flask(__name__)
+app = FastAPI(title="Dhvani AI API 🚀")
 
-UPLOAD_FOLDER = "temp"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ✅ CORS (important for frontend like lovable.ai)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.route("/")
+UPLOAD_DIR = "temp"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+@app.get("/")
 def home():
-    return {"message": "Dhvani AI Backend Running 🚀"}
+    return {"message": "Dhvani FastAPI running 🚀"}
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
 
-    file = request.files["file"]
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(file_path)
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
     try:
         result = predict_sound(file_path)
-        return jsonify(result)
+        return result
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+        return {"error": str(e)}
