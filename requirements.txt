@@ -1,7 +1,7 @@
 fastapi
 uvicorn
-tensorflow-cpu==2.15.0
-librosa
+tensorflow-cpu==2.13.0
 numpy
+librosa
 opencv-python-headless
 python-multipart
